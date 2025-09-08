@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include <cstdint>
+#include <cmath>
 
 // Eight-bit emulation utilities
 namespace F8 {
@@ -93,7 +94,18 @@ public:
             }
         }
 
+        void prepare(double sampleRate) {
+            // Update sample rate for filter calculations
+            currentSampleRate = sampleRate;
+
+            // Calculate filter coefficients for anti-aliasing
+            updateFilterCoefficients();
+        }
+
         float processSample(float input) {
+            // Apply input anti-aliasing filter
+            float filteredInput = applyInputFilter(input);
+
             // Update LFO
             lfo.rate = lfoRate;
             int8_t lfoValue = lfo.tick();
@@ -114,15 +126,18 @@ public:
 
             // Apply feedback with soft clipping to prevent runaway
             float fbAmount = feedback * F8::kScale * 0.5f; // Reduced feedback range
-            delayLine1[writePos] = F8::softClip(input + tap1 * fbAmount);
-            delayLine2[writePos] = F8::softClip(input + tap2 * fbAmount);
-            delayLine3[writePos] = F8::softClip(input + tap3 * fbAmount);
+            delayLine1[writePos] = F8::softClip(filteredInput + tap1 * fbAmount);
+            delayLine2[writePos] = F8::softClip(filteredInput + tap2 * fbAmount);
+            delayLine3[writePos] = F8::softClip(filteredInput + tap3 * fbAmount);
 
             // Update write position
             writePos = (writePos + 1) % DELAY_BUFFER_SIZE;
 
             // Mix wet and dry
-            float output = input * (1.0f - mix * F8::kScale) + wet * (mix * F8::kScale);
+            float output = filteredInput * (1.0f - mix * F8::kScale) + wet * (mix * F8::kScale);
+
+            // Apply output anti-aliasing filter
+            output = applyOutputFilter(output);
 
             // Apply gain with soft clipping
             output = F8::softClip(output * (gain * F8::kScale));
@@ -135,6 +150,10 @@ public:
             std::fill_n(delayLine2, DELAY_BUFFER_SIZE, 0.0f);
             std::fill_n(delayLine3, DELAY_BUFFER_SIZE, 0.0f);
             writePos = 0;
+
+            // Reset filter states
+            inputFilterState = 0.0f;
+            outputFilterState = 0.0f;
         }
 
     private:
@@ -143,6 +162,13 @@ public:
         float delayLine2[DELAY_BUFFER_SIZE] = { 0 };
         float delayLine3[DELAY_BUFFER_SIZE] = { 0 };
         int writePos = 0;
+        double currentSampleRate = 44100.0;
+
+        // Anti-aliasing filter coefficients and state
+        float inputFilterCoeff = 0.0f;
+        float outputFilterCoeff = 0.0f;
+        float inputFilterState = 0.0f;
+        float outputFilterState = 0.0f;
 
         F8::LFO lfo;
 
@@ -168,6 +194,28 @@ public:
 
             // Linear interpolation
             return buffer[intIndex] * (1.0f - frac) + buffer[nextIndex] * frac;
+        }
+
+        void updateFilterCoefficients() {
+            // Calculate filter coefficients for 16kHz low-pass filter (Nyquist for 32kHz)
+            // Using a simple one-pole IIR filter
+            float cutoffFrequency = 16000.0f; // 16kHz cutoff
+            float dt = 1.0f / static_cast<float>(currentSampleRate);
+            float rc = 1.0f / (2.0f * 3.1415926535f * cutoffFrequency);
+            inputFilterCoeff = dt / (rc + dt);
+            outputFilterCoeff = inputFilterCoeff;
+        }
+
+        float applyInputFilter(float sample) {
+            // Simple one-pole low-pass filter for anti-aliasing
+            inputFilterState = inputFilterState + inputFilterCoeff * (sample - inputFilterState);
+            return inputFilterState;
+        }
+
+        float applyOutputFilter(float sample) {
+            // Simple one-pole low-pass filter for anti-aliasing
+            outputFilterState = outputFilterState + outputFilterCoeff * (sample - outputFilterState);
+            return outputFilterState;
         }
     };
 

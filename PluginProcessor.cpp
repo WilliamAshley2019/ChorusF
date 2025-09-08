@@ -97,8 +97,7 @@ double FairlightChorusAudioProcessor::getTailLengthSeconds() const
 
 int FairlightChorusAudioProcessor::getNumPrograms()
 {
-    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-    // so this should be at least 1, even if you're not really implementing programs.
+    return 1;
 }
 
 int FairlightChorusAudioProcessor::getCurrentProgram()
@@ -128,11 +127,15 @@ void FairlightChorusAudioProcessor::prepareToPlay(double sampleRate, int samples
     // Initialize oversampler for internal 32kHz processing
     oversampler = std::make_unique<juce::dsp::Oversampling<float>>(
         getTotalNumInputChannels(),
-        2, // 2x oversampling to reach 32kHz from common sample rates
+        4, // Increased to 4x oversampling for better anti-aliasing
         juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR,
-        false); // don't use steep filters
+        true); // Use steep filters for better anti-aliasing
 
     oversampler->initProcessing(static_cast<size_t> (samplesPerBlock));
+
+    // Prepare chorus with the oversampled sample rate
+    double oversampledRate = sampleRate * oversampler->getOversamplingFactor();
+    chorus.prepare(oversampledRate);
 
     // Reset chorus effect
     chorus.reset();
@@ -150,13 +153,10 @@ bool FairlightChorusAudioProcessor::isBusesLayoutSupported(const BusesLayout& la
     juce::ignoreUnused(layouts);
     return true;
 #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
         && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
 
-    // This checks if the input layout matches the output layout
 #if ! JucePlugin_IsSynth
     if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
@@ -188,7 +188,7 @@ void FairlightChorusAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     chorus.setParameter(5, static_cast<uint8_t>(*parameters.getRawParameterValue("feedback")));
     chorus.setParameter(6, static_cast<uint8_t>(*parameters.getRawParameterValue("gain")));
 
-    // Upsample to internal processing rate (32kHz)
+    // Upsample to higher rate for better anti-aliasing
     juce::dsp::AudioBlock<float> inputBlock(buffer);
     juce::dsp::AudioBlock<float> oversampledBlock = oversampler->processSamplesUp(inputBlock);
 
@@ -203,14 +203,14 @@ void FairlightChorusAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
         }
     }
 
-    // Downsample back to original sample rate
+    // Downsample back to original sample rate with anti-aliasing filters
     oversampler->processSamplesDown(inputBlock);
 }
 
 //==============================================================================
 bool FairlightChorusAudioProcessor::hasEditor() const
 {
-    return true; // (change this to false if you choose to not supply an editor)
+    return true;
 }
 
 juce::AudioProcessorEditor* FairlightChorusAudioProcessor::createEditor()

@@ -5,9 +5,8 @@
 FairlightChorusAudioProcessorEditor::FairlightChorusAudioProcessorEditor(FairlightChorusAudioProcessor& p)
     : AudioProcessorEditor(&p), processor(p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize(600, 350); // Increased size to fit all controls
+    // Set plugin window size
+    setSize(600, 350);
 
     // Title
     titleLabel.setText("Chorus F", juce::dontSendNotification);
@@ -136,7 +135,7 @@ FairlightChorusAudioProcessorEditor::~FairlightChorusAudioProcessorEditor()
 //==============================================================================
 void FairlightChorusAudioProcessorEditor::paint(juce::Graphics& g)
 {
-    // Fairlight cream background
+    // Dark background
     g.fillAll(juce::Colour(0xff404040));
 
     // Draw monitor bezel
