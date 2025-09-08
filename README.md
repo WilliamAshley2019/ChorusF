@@ -92,7 +92,7 @@ the architecture. Thus this is not an emulation but it is a concept of modeling 
 Fairlight CMI, perhaps in future copies I can get closer to the real thing. A big thanks to Peter Vogel and Kim Ryrie for pioneering 
 computer audio technologies like the Fairlight CMI that has passed down not only some great music but insight into DSP technologies. 
 Its not a replacement for the real thing, but who has the real thing. OH right, also check out the actual plugins from companies like 
-arturia if you would like a more authentic emulation. This was just a concept build with no attemptto mirror the original just use some of the same framework.
+arturia if you would like a more authentic emulation. This was just a concept build with no attempt to mirror the original just use some of the same framework.
  
  Chorus F Developer: William Ashley
  
