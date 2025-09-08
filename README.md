@@ -28,14 +28,8 @@ Performance: Real-time safe with soft clipping to prevent feedback runaway
 GUI: Retro green phosphor interface inspired by the Fairlight CMI colors. 
 
 
-Developer: Created by William Ashley
 
-Explore more of my work:
-Portfolio Website https://12264447666william.wixsite.com/williamashley
-GitHub Profile https://github.com/WilliamAshley2019/
-Hopp.bio https://www.hopp.bio/william-ashley
-Medium Blog https://medium.com/@12264447666.williamashley
-YouTube Channel https://www.youtube.com/@WilliamAshleyOnline
+
 
 Prerequisites
 To build Chorus F you need:JUCE Framework: Version 8.0.9 Download JUCE here https://juce.com/
@@ -73,11 +67,17 @@ Steinberg VST3 SDK. VST is a trademark of Steinberg Media Technologies GmbH, reg
 About the Developer
 William Ashley is an aspiring hobbyist audio engineer and plugin developer passionate about vintage synths and modern music production.
 Connect with me:
+
 Portfolio https://12264447666william.wixsite.com/williamashley
+
 GitHub https://github.com/WilliamAshley2019/
+
 Hopp.bio https://www.hopp.bio/william-ashley
+
 Medium https://medium.com/@12264447666.williamashley
+
 YouTube https://www.youtube.com/@WilliamAshleyOnline
+
 
 AcknowledgmentsBuilt with the JUCE framework
 Inspired by the Fairlight CMI’s iconic chorus effect, the actual .eff files were not modeled but there was an attempt to mirrow
@@ -85,8 +85,7 @@ the architecture. Thus this is not an emulation but it is a concept of modeling 
 Fairlight CMI, perhaps in future copies I can get closer to the real thing. A big thanks to Peter Vogel and Kim Ryrie for pioneering 
 computer audio technologies like the Fairlight CMI that has passed down not only some great music but insight into DSP technologies. 
 Its not a replacement for the real thing, but who has the real thing. OH right, also check out the actual plugins from companies like 
-arturia if you would like a more authentic emulation. This was just a concept build with no attemptto mirror the original just use some
-of the same framework.
+arturia if you would like a more authentic emulation. This was just a concept build with no attemptto mirror the original just use some of the same framework.
  
- 
+ Chorus F Developer: William Ashley
  
