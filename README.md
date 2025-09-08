@@ -11,7 +11,7 @@ bit crush type quality to the sound.
 Built with JUCE 8.0.9, its offered as a VST3 , delivering vintage grimmer and depth to synths, guitars, vocals, and more. Ideal for music producers, audio engineers, and plugin developers, Chorus F combines retro 8-bit aesthetics with modern performance for music production and sound design.
 
 Features an attempt at Fairlight architecture:Three-tap delay system with linear interpolation, mimicking the CMI’s chorus
-64-entry sine table LFO for true-to-era modulation
+64-entry sine table LFO for true-to-era modulation. Some tuning may need apply.
 
 Internal 32 kHz processing via oversampling for vintage fidelity.
 
