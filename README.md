@@ -25,7 +25,9 @@ Gain: 0 to 255, default 255 (full output)
 
 Formats: VST3 for DAWs (Ableton Live, Reaper, FL Studio) and Standalone
 Performance: Real-time safe with soft clipping to prevent feedback runaway
-GUI: Retro green phosphor interface inspired by the Fairlight CMI
+GUI: Retro green phosphor interface inspired by the Fairlight CMI colors. 
+
+
 Developer: Created by William Ashley
 
 Explore more of my work:
