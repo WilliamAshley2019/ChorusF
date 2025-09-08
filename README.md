@@ -87,7 +87,7 @@ YouTube https://www.youtube.com/@WilliamAshleyOnline
 
 
 AcknowledgmentsBuilt with the JUCE framework
-Inspired by the Fairlight CMI’s iconic chorus effect, the actual .eff files were not modeled but there was an attempt to mirrow
+Inspired by the Fairlight CMI’s iconic chorus effect, the actual .eff files were not modeled but there was an attempt to mirror
 the architecture. Thus this is not an emulation but it is a concept of modeling something using some of the same ideas as the 
 Fairlight CMI, perhaps in future copies I can get closer to the real thing. A big thanks to Peter Vogel and Kim Ryrie for pioneering 
 computer audio technologies like the Fairlight CMI that has passed down not only some great music but insight into DSP technologies. 
