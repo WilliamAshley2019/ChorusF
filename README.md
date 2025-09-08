@@ -33,20 +33,27 @@ GUI: Retro green phosphor interface inspired by the Fairlight CMI colors.
 
 Prerequisites
 To build Chorus F you need:JUCE Framework: Version 8.0.9 Download JUCE here https://juce.com/
+
 C++ Compiler: Visual Studio 2022 Community (Windows) or compatible IDE with C++17 support
 Operating System: Windows 11  (tested) 
+
 DAW: Compatible with VST3 (tested in FL Studio)
+
 
 Copy the VST3 plugin to your DAW’s VST3 folder (e.g., C:\Program Files\Common Files\VST3).
 
+
 Adjust parameters (mix, depth, center delay, LFO rate, phase spread, feedback, gain) using rotary sliders.
+
 Experiment with settings for grainy synths,  guitars, distorted vocals. It does have a bit of an 80s feel.
+
  
  
 
  
 JuceLibraryCode/: JUCE module includes 
 Development Notes JUCE Version: Built with JUCE 8.0.9 for compatibility
+
 Dependencies: Uses JUCE modules (juce_audio_basics, juce_audio_devices, juce_audio_formats, juce_audio_plugin_client, 
 juce_audio_processors, juce_core, juce_dsp, juce_events, juce_graphics, juce_gui_basics, juce_gui_extra)
 
