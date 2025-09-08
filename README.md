@@ -1,4 +1,4 @@
-Chorus F - Fairlight CMI Chorus Emulator Plugin atleast that is the idea, lol.
+Chorus F - Fairlight CMI Chorus Emulator Plugin atleast that is the idea, lol. Chorus F is not Fairlight.
 
 Chorus F is an open-source audio plugin that set out to recreate the iconic chorus effect of the Fairlight CMI
 , a legendary 1980s sampler and synthesizer. It is in fact one of the earliest digital effects processors in a computer. It had the chorus 
