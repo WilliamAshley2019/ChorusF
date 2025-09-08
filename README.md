@@ -8,7 +8,7 @@ has a distortion aspect to it but it felt unique in what sounds it was making. W
 vintage chorus it created a nice character in doubling up the choruses. Because the idea is to process at 8 bit there is a bit of a
 bit crush type quality to the sound.
 
-Built with JUCE 8.0.9, it supports VST3 and Standalone formats, delivering vintage shimmer and depth to synths, guitars, vocals, and more. Ideal for music producers, audio engineers, and plugin developers, Chorus F combines retro 8-bit aesthetics with modern performance for music production and sound design.Keywords: Fairlight CMI, chorus effect, VST3 plugin, JUCE plugin, audio engineering, music production, vintage synth, chorus plugin, William AshleyFeaturesAuthentic Fairlight Emulation:Three-tap delay system with linear interpolation, mimicking the CMI’s chorus
+Built with JUCE 8.0.9, its offered as a VST3 , delivering vintage grimmmer and depth to synths, guitars, vocals, and more. Ideal for music producers, audio engineers, and plugin developers, Chorus F combines retro 8-bit aesthetics with modern performance for music production and sound design.Keywords: Fairlight CMI, chorus effect, VST3 plugin, JUCE plugin, audio engineering, music production, vintage synth, chorus plugin, William AshleyFeaturesAuthentic Fairlight Emulation:Three-tap delay system with linear interpolation, mimicking the CMI’s chorus
 64-entry sine table LFO for true-to-era modulation
 
 Internal 32 kHz processing via oversampling for vintage fidelity.
