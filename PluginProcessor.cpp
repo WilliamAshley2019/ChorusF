@@ -1,6 +1,5 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include <juce_dsp/juce_dsp.h>
 
 //==============================================================================
 FairlightChorusAudioProcessor::FairlightChorusAudioProcessor()
@@ -12,7 +11,8 @@ FairlightChorusAudioProcessor::FairlightChorusAudioProcessor()
         .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
     ),
-    parameters(*this, nullptr, "Parameters", createParameterLayout())
+    parameters(*this, nullptr, "Parameters", createParameterLayout()),
+    oversampler(2, 1, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true, false)
 {
 }
 
@@ -25,33 +25,32 @@ juce::AudioProcessorValueTreeState::ParameterLayout FairlightChorusAudioProcesso
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
-    // Original Fairlight parameters (0-255 range)
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "mix", "Mix",
+        juce::ParameterID("mix", 1), "Mix",
         juce::NormalisableRange<float>(0.0f, 255.0f, 1.0f), 128.0f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "depth", "Depth",
+        juce::ParameterID("depth", 1), "Depth",
         juce::NormalisableRange<float>(0.0f, 255.0f, 1.0f), 40.0f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "centerDelay", "Center Delay",
+        juce::ParameterID("centerDelay", 1), "Center Delay",
         juce::NormalisableRange<float>(0.0f, 255.0f, 1.0f), 80.0f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "lfoRate", "LFO Rate",
+        juce::ParameterID("lfoRate", 1), "LFO Rate",
         juce::NormalisableRange<float>(0.0f, 255.0f, 1.0f), 4.0f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "phaseSpread", "Phase Spread",
+        juce::ParameterID("phaseSpread", 1), "Phase Spread",
         juce::NormalisableRange<float>(0.0f, 255.0f, 1.0f), 0.0f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "feedback", "Feedback",
+        juce::ParameterID("feedback", 1), "Feedback",
         juce::NormalisableRange<float>(0.0f, 255.0f, 1.0f), 0.0f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "gain", "Gain",
+        juce::ParameterID("gain", 1), "Gain",
         juce::NormalisableRange<float>(0.0f, 255.0f, 1.0f), 255.0f));
 
     return layout;
@@ -105,45 +104,42 @@ int FairlightChorusAudioProcessor::getCurrentProgram()
     return 0;
 }
 
-void FairlightChorusAudioProcessor::setCurrentProgram(int index)
+void FairlightChorusAudioProcessor::setCurrentProgram(int)
 {
-    juce::ignoreUnused(index);
 }
 
-const juce::String FairlightChorusAudioProcessor::getProgramName(int index)
+const juce::String FairlightChorusAudioProcessor::getProgramName(int)
 {
-    juce::ignoreUnused(index);
     return {};
 }
 
-void FairlightChorusAudioProcessor::changeProgramName(int index, const juce::String& newName)
+void FairlightChorusAudioProcessor::changeProgramName(int, const juce::String&)
 {
-    juce::ignoreUnused(index, newName);
 }
 
 //==============================================================================
 void FairlightChorusAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    // Initialize oversampler for internal 32kHz processing
-    oversampler = std::make_unique<juce::dsp::Oversampling<float>>(
-        getTotalNumInputChannels(),
-        4, // Increased to 4x oversampling for better anti-aliasing
-        juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR,
-        true); // Use steep filters for better anti-aliasing
+    hostSampleRate = sampleRate;
 
-    oversampler->initProcessing(static_cast<size_t> (samplesPerBlock));
+    // Prepare oversampler for 2x (simulates 32kHz processing on modern systems)
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = static_cast<uint32_t>(samplesPerBlock);
+    spec.numChannels = static_cast<uint32_t>(getTotalNumInputChannels());
 
-    // Prepare chorus with the oversampled sample rate
-    double oversampledRate = sampleRate * oversampler->getOversamplingFactor();
-    chorus.prepare(oversampledRate);
+    oversampler.initProcessing(static_cast<size_t>(samplesPerBlock));
 
-    // Reset chorus effect
+    // Prepare chorus at effective 32kHz (2x oversampling from typical 44.1/48kHz)
+    chorus.prepare(sampleRate * 0.75); // Approximate CMI's 32kHz
     chorus.reset();
+
+    silentBlockCount = 0;
 }
 
 void FairlightChorusAudioProcessor::releaseResources()
 {
-    oversampler->reset();
+    oversampler.reset();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -167,44 +163,68 @@ bool FairlightChorusAudioProcessor::isBusesLayoutSupported(const BusesLayout& la
 }
 #endif
 
-void FairlightChorusAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void FairlightChorusAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
 {
-    juce::ignoreUnused(midiMessages);
-
     juce::ScopedNoDenormals noDenormals;
+
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
+    auto numSamples = buffer.getNumSamples();
 
-    // Clear any output channels that don't contain input data
+    // Clear unused output channels
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear(i, 0, buffer.getNumSamples());
+        buffer.clear(i, 0, numSamples);
 
-    // Update parameters
-    chorus.setParameter(0, static_cast<uint8_t>(*parameters.getRawParameterValue("mix")));
-    chorus.setParameter(1, static_cast<uint8_t>(*parameters.getRawParameterValue("depth")));
-    chorus.setParameter(2, static_cast<uint8_t>(*parameters.getRawParameterValue("centerDelay")));
-    chorus.setParameter(3, static_cast<uint8_t>(*parameters.getRawParameterValue("lfoRate")));
-    chorus.setParameter(4, static_cast<uint8_t>(*parameters.getRawParameterValue("phaseSpread")));
-    chorus.setParameter(5, static_cast<uint8_t>(*parameters.getRawParameterValue("feedback")));
-    chorus.setParameter(6, static_cast<uint8_t>(*parameters.getRawParameterValue("gain")));
+    if (totalNumInputChannels == 0 || numSamples == 0)
+        return;
 
-    // Upsample to higher rate for better anti-aliasing
-    juce::dsp::AudioBlock<float> inputBlock(buffer);
-    juce::dsp::AudioBlock<float> oversampledBlock = oversampler->processSamplesUp(inputBlock);
+    // CPU optimization: Silence detection (Melda-style)
+    float rmsLeft = buffer.getRMSLevel(0, 0, numSamples);
+    float rmsRight = totalNumInputChannels > 1 ? buffer.getRMSLevel(1, 0, numSamples) : 0.0f;
 
-    // Process each channel
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    constexpr float silenceThreshold = 0.0001f; // -80 dB
+
+    if (rmsLeft < silenceThreshold && rmsRight < silenceThreshold)
     {
-        auto* channelData = oversampledBlock.getChannelPointer(channel);
-
-        for (int sample = 0; sample < oversampledBlock.getNumSamples(); ++sample)
+        silentBlockCount++;
+        if (silentBlockCount > kMaxSilentBlocks)
         {
-            channelData[sample] = chorus.processSample(channelData[sample]);
+            // Skip processing during extended silence
+            return;
         }
     }
+    else
+    {
+        silentBlockCount = 0;
+    }
 
-    // Downsample back to original sample rate with anti-aliasing filters
-    oversampler->processSamplesDown(inputBlock);
+    // Update parameters (once per block, not per sample)
+    chorus.setParameter(0, static_cast<uint8_t>(parameters.getRawParameterValue("mix")->load()));
+    chorus.setParameter(1, static_cast<uint8_t>(parameters.getRawParameterValue("depth")->load()));
+    chorus.setParameter(2, static_cast<uint8_t>(parameters.getRawParameterValue("centerDelay")->load()));
+    chorus.setParameter(3, static_cast<uint8_t>(parameters.getRawParameterValue("lfoRate")->load()));
+    chorus.setParameter(4, static_cast<uint8_t>(parameters.getRawParameterValue("phaseSpread")->load()));
+    chorus.setParameter(5, static_cast<uint8_t>(parameters.getRawParameterValue("feedback")->load()));
+    chorus.setParameter(6, static_cast<uint8_t>(parameters.getRawParameterValue("gain")->load()));
+
+    // Create AudioBlock from buffer for oversampling
+    juce::dsp::AudioBlock<float> block(buffer);
+
+    // Upsample to simulate 32kHz CMI processing
+    auto oversampledBlock = oversampler.processSamplesUp(block);
+
+    // Process each channel at upsampled rate
+    for (size_t channel = 0; channel < oversampledBlock.getNumChannels(); ++channel)
+    {
+        auto* channelData = oversampledBlock.getChannelPointer(channel);
+        auto channelSamples = static_cast<int>(oversampledBlock.getNumSamples());
+
+        // SIMD-optimized block processing
+        chorus.processBlock(channelData, channelSamples);
+    }
+
+    // Downsample back to host rate
+    oversampler.processSamplesDown(block);
 }
 
 //==============================================================================
@@ -230,13 +250,12 @@ void FairlightChorusAudioProcessor::setStateInformation(const void* data, int si
 {
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
 
-    if (xmlState.get() != nullptr)
+    if (xmlState != nullptr)
         if (xmlState->hasTagName(parameters.state.getType()))
             parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 //==============================================================================
-// This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new FairlightChorusAudioProcessor();

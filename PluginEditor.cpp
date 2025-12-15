@@ -1,5 +1,5 @@
-#include "PluginEditor.h"
 #include "PluginProcessor.h"
+#include "PluginEditor.h"
 
 //==============================================================================
 FairlightChorusAudioProcessorEditor::FairlightChorusAudioProcessorEditor(FairlightChorusAudioProcessor& p)
@@ -8,9 +8,9 @@ FairlightChorusAudioProcessorEditor::FairlightChorusAudioProcessorEditor(Fairlig
     // Set plugin window size
     setSize(600, 350);
 
-    // Title
+    // Title - JUCE 8.0.11 compatible Font constructor
     titleLabel.setText("Chorus F", juce::dontSendNotification);
-    titleLabel.setFont(juce::Font(24.0f, juce::Font::bold));
+    titleLabel.setFont(juce::Font(juce::FontOptions(24.0f, juce::Font::bold)));
     titleLabel.setJustificationType(juce::Justification::centred);
     titleLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     addAndMakeVisible(titleLabel);
@@ -140,15 +140,15 @@ void FairlightChorusAudioProcessorEditor::paint(juce::Graphics& g)
 
     // Draw monitor bezel
     g.setColour(juce::Colours::black);
-    g.fillRoundedRectangle(20, 20, getWidth() - 40, getHeight() - 40, 10);
+    g.fillRoundedRectangle(20.0f, 20.0f, static_cast<float>(getWidth() - 40), static_cast<float>(getHeight() - 40), 10.0f);
 
-    // Draw screen area
-    g.setColour(juce::Colour(0xff224422)); // Fairlight green phosphor
-    g.fillRect(30, 30, getWidth() - 60, getHeight() - 100);
+    // Draw screen area - Fairlight green phosphor
+    g.setColour(juce::Colour(0xff224422));
+    g.fillRect(30.0f, 30.0f, static_cast<float>(getWidth() - 60), static_cast<float>(getHeight() - 100));
 
     // Draw parameter area background
     g.setColour(juce::Colour(0xff333333));
-    g.fillRect(30, getHeight() - 70, getWidth() - 60, 50);
+    g.fillRect(30.0f, static_cast<float>(getHeight() - 70), static_cast<float>(getWidth() - 60), 50.0f);
 }
 
 void FairlightChorusAudioProcessorEditor::resized()
