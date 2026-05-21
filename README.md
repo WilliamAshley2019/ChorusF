@@ -1,3 +1,20 @@
+--------------------------------------------------------------------------------------------------
+Copyright (c) 2026 William Ashley d/b/a William Ashley Music ( http://WilliamAshley.music )
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License  (v3) 
+
+This program is distributed in the hope that it will be useful to other audio programmers and music makers in their own plugin designs.
+There is no WARRANTY expressed or implied including for MERCHANTABILITY or FITNESS FOR ANY PURPOSE. 
+See the GNU General Public License for more details.
+
+Attributtion is requested where possible if you use or modify any of the source,
+Notice of use is requested so I can familiarize myself with how the code has been adapted for personal interest.
+contact@WilliamAshley.music   
+-----------------------------------------------------------------------------------------------------
+
+THIS PROJECT IS A WORK IN PROGRESS - I havn't quite got it right yet :)
+------------------------------------
+
 Chorus F - Fairlight CMI Chorus Emulator Plugin atleast that is the idea, lol. Chorus F is not Fairlight.
 
 Chorus F is an open-source audio plugin that set out to recreate the iconic chorus effect of the Fairlight CMI
